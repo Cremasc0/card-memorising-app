@@ -1,0 +1,12 @@
+{
+  "name": "trevisane-card-assets",
+  "private": true,
+  "scripts": {
+    "prevectorize:cards": "python prepare_trace.py",
+    "vectorize:cards": "node vectorize_cards.js"
+  },
+  "dependencies": {
+    "imagetracerjs": "^1.2.6",
+    "pngjs": "^7.0.0"
+  }
+}
