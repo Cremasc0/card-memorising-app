@@ -1,24 +1,31 @@
 # Card Counting Drill
 
-Windows desktop app for practising card counting with selectable decks:
+Desktop card counting practice app for Windows and macOS.
+
+Available card styles:
 
 - Standard poker cards
 - Poker cards numbered 1 to 10
 - Poker cards numbered 1 to 7 plus Jack, Queen, King
 - Full 52-card poker deck with 0–2 jokers
-- Double 52-card deck with 0–4 jokers
-- Vector artwork for all poker ranks, suits, and the available jokers
-- Trevisane card scans (PNG)
-- Trevisane traced cards (SVG)
+- Double 52-card poker deck with 0–4 jokers
+- Trevisane card scans (PNG) or traced vectors (SVG)
+
+The size slider ranges from 100% to 250% and remembers its setting. Choose to reveal 1–5 cards at a time; that setting is remembered too.
+
+## Download the app
+
+Download the latest Windows `.exe` or macOS `.dmg` from the [GitHub Releases page](https://github.com/Cremasc0/card-memorising-app/releases/latest). The macOS build is universal for Intel and Apple Silicon Macs.
+
+The macOS app is not signed or notarized. To open it the first time, try to open it, then use **System Settings → Privacy & Security → Open Anyway** if macOS blocks it. See [Apple's instructions](https://support.apple.com/en-gb/102445).
 
 ## Run from source
 
-Install Node.js, then run `npm install` and `npm start` from this folder.
+Install Node.js, then run `npm ci` and `npm start` from this folder.
 
-## Build the portable Windows app
+## Build
 
-Run `npm run build:win`. The portable executable will be created in `dist-win`.
-It includes the app and all card images, so it can be moved and opened directly.
+- Windows portable app: `npm run build:win`
+- macOS universal `.dmg` and `.zip`: `npm run build:mac`
 
-The card size slider ranges from 100% to 250%, remembers your setting, and starts at 190%.
-Choose to reveal 1–5 cards at a time; this setting is remembered too.
+Builds are placed in `dist`. Pushing a version tag such as `v1.1.0` runs GitHub Actions for both platforms and publishes the installers to GitHub Releases. `workflow_dispatch` can build the platform artifacts without publishing a release.

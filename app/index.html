@@ -1712,7 +1712,9 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
         return `<div class="card-back">End</div>`;
       }
       if (card.isJoker) {
-        return `<div class="playing-card is-joker"><span class="joker-face">JOKER</span><span class="joker-suit" aria-hidden="true">★</span><span class="joker-face">JOKER</span></div>`;
+        const filename = getPokerVectorFilename(card);
+        const src = `../Single%20Cards%20(One%20Per%20FIle)/${filename}`;
+        return `<div class="playing-card is-vector-card is-joker"><img class="card-art" src="${src}" alt="Joker" draggable="false"></div>`;
       }
       const preset = DECK_MODES[currentDeckMode];
       if (preset.image) {
