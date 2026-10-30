@@ -1,6 +1,6 @@
 {
   "name": "trevisane-card-drill",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "private": true,
   "description": "Windows desktop card counting drill with selectable poker and Trevisane card styles",
   "main": "main.cjs",
