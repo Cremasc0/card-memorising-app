@@ -1,12 +1,39 @@
 {
-  "name": "trevisane-card-assets",
+  "name": "trevisane-card-drill",
+  "version": "1.0.0",
   "private": true,
+  "description": "Windows desktop card counting drill with selectable poker and Trevisane card styles",
+  "main": "main.cjs",
   "scripts": {
     "prevectorize:cards": "python prepare_trace.py",
-    "vectorize:cards": "node vectorize_cards.js"
+    "vectorize:cards": "node vectorize_cards.js",
+    "start": "electron .",
+    "build:win": "electron-builder --win portable"
   },
   "dependencies": {
     "imagetracerjs": "^1.2.6",
     "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.cardmemorising.drill",
+    "productName": "Card Counting Drill",
+    "asar": true,
+    "files": [
+      "main.cjs",
+      "app/**/*"
+    ],
+    "win": {
+      "target": ["portable"]
+    },
+    "portable": {
+      "artifactName": "Card-Counting-Drill-${version}.exe"
+    },
+    "directories": {
+      "output": "dist-win"
+    }
   }
 }

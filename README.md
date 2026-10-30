@@ -1,0 +1,18 @@
+# Card Counting Drill
+
+Windows desktop app for practising card counting with selectable decks:
+
+- Standard poker cards
+- Poker cards numbered 1 to 10
+- Poker cards numbered 1 to 7 plus Jack, Queen, King
+- Trevisane card scans (PNG)
+- Trevisane traced cards (SVG)
+
+## Run from source
+
+Install Node.js, then run `npm install` and `npm start` from this folder.
+
+## Build the portable Windows app
+
+Run `npm run build:win`. The portable executable will be created in `dist-win`.
+It includes the app and all card images, so it can be moved and opened directly.
