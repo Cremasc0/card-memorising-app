@@ -24,7 +24,8 @@
     "asar": true,
     "files": [
       "main.cjs",
-      "app/**/*"
+      "app/**/*",
+      "Single Cards (One Per FIle)/**/*"
     ],
     "win": {
       "target": ["portable"]

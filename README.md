@@ -7,6 +7,7 @@ Windows desktop app for practising card counting with selectable decks:
 - Poker cards numbered 1 to 7 plus Jack, Queen, King
 - Full 52-card poker deck with 0–2 jokers
 - Double 52-card deck with 0–4 jokers
+- Vector artwork for all poker ranks, suits, and the available jokers
 - Trevisane card scans (PNG)
 - Trevisane traced cards (SVG)
 

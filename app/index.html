@@ -1104,11 +1104,26 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       background: #fff;
     }
 
+    .playing-card.is-vector-card {
+      width: var(--vector-card-width, 90px);
+      height: var(--vector-card-height, 122px);
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+
     .playing-card.is-image-card .card-art {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: fill;
+    }
+
+    .playing-card.is-vector-card .card-art {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .playing-card.is-drawing {
@@ -1517,6 +1532,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       { name: 'Diamonds', symbol: '♦', color: 'red' }, { name: 'Spades', symbol: '♠', color: 'black' },
       { name: 'Hearts', symbol: '♥', color: 'red' }, { name: 'Clubs', symbol: '♣', color: 'black' }
     ];
+    const POKER_VECTOR_SUITS = { Diamonds: 'DIAMOND', Spades: 'SPADE', Hearts: 'HEART', Clubs: 'CLUB' };
     const TREVISANE_SUITS = [
       { name: 'Bastoni', symbol: '♣', color: 'black' }, { name: 'Coppa', symbol: '♥', color: 'red' },
       { name: 'Denari', symbol: '♦', color: 'red', assetSuit: 'Dinari' }, { name: 'Spada', symbol: '♠', color: 'black' }
@@ -1535,6 +1551,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       document.documentElement.style.setProperty('--standard-card-height', `${Math.round(124 * scale)}px`);
       document.documentElement.style.setProperty('--image-card-width', `${Math.round(78 * scale)}px`);
       document.documentElement.style.setProperty('--image-card-height', `${Math.round(158 * scale)}px`);
+      document.documentElement.style.setProperty('--vector-card-width', `${Math.round(90 * scale)}px`);
+      document.documentElement.style.setProperty('--vector-card-height', `${Math.round(122 * scale)}px`);
       if (slider) slider.value = String(size);
       const valueLabel = document.getElementById('card-size-value');
       if (valueLabel) valueLabel.textContent = `${size}%`;
@@ -1583,6 +1601,15 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       return `Track remaining cards from a ${baseCount}-card ${deckName} with ${jokerCount} joker${jokerCount === 1 ? '' : 's'}`;
     }
 
+    function getPokerVectorFilename(card) {
+      if (card.isJoker) return `JOKER-${(card.jokerNumber % 3) + 1}.svg`;
+      const suit = POKER_VECTOR_SUITS[card.suitName];
+      const rankNumber = ({ A: 1, J: 11, Q: 12, K: 13 })[card.rank] || Number(card.rank);
+      if (!suit || !Number.isInteger(rankNumber) || rankNumber < 1 || rankNumber > 13) return null;
+      const faceName = ({ 11: '-JACK', 12: '-QUEEN', 13: '-KING' })[rankNumber] || '';
+      return `${suit}-${rankNumber}${faceName}.svg`;
+    }
+
     const state = {
       level: 1, // 1 to 4 suits
       deck: [],
@@ -1625,6 +1652,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
             state.deck.push({
               rank,
               suit: suitObj.symbol,
+              suitName: suitObj.name,
               color: suitObj.color,
               assetSuit: suitObj.assetSuit || suitObj.name,
               assetNumber: index + 1
@@ -1634,7 +1662,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
         }
       }
       for (let i = 0; i < jokerCount; i++) {
-        state.deck.push({ rank: 'Joker', suit: '★', color: i % 2 ? 'red' : 'black', isJoker: true });
+        state.deck.push({ rank: 'Joker', suit: '★', color: i % 2 ? 'red' : 'black', isJoker: true, jokerNumber: i });
         state.remainingCounts.Joker++;
       }
 
@@ -1692,6 +1720,12 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
         const filename = `${suitName}_${String(card.assetNumber).padStart(2, '0')}.${preset.image}`;
         const src = `assets/Trevisane/${suitName}/${filename}`;
         return `<div class="playing-card is-image-card"><img class="card-art" src="${src}" alt="${suitName} ${card.rank}" draggable="false"></div>`;
+      }
+      const vectorFilename = getPokerVectorFilename(card);
+      if (vectorFilename) {
+        const src = `../Single%20Cards%20(One%20Per%20FIle)/${vectorFilename}`;
+        const alt = card.isJoker ? 'Joker' : `${card.rank} of ${card.suitName}`;
+        return `<div class="playing-card is-vector-card"><img class="card-art" src="${src}" alt="${alt}" draggable="false"></div>`;
       }
       return `
         <div class="playing-card is-${card.color}">
