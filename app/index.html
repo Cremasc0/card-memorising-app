@@ -1070,6 +1070,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
 
     .cards-display {
       display: flex;
+      flex-wrap: wrap;
       gap: var(--spacing-l);
       align-items: center;
       justify-content: center;
@@ -1191,6 +1192,22 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       accent-color: var(--accent, #3186ff);
       cursor: pointer;
     }
+
+    .card-size-control[hidden] { display: none; }
+    .card-size-control input[type="range"]:focus-visible {
+      outline: 2px solid var(--lumi-sys-color--accent-fixed, #3186ff);
+      outline-offset: 3px;
+    }
+
+    .playing-card.is-joker {
+      align-items: center;
+      justify-content: center;
+      color: #5c3c9e;
+      background: linear-gradient(145deg, #fff, #f2edff);
+    }
+
+    .joker-face { font-size: 1.35em; font-weight: 800; letter-spacing: .08em; }
+    .joker-suit { font-size: 2.4em; line-height: 1; }
 
     .card-size-control output {
       min-width: 42px;
@@ -1385,6 +1402,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
           <option value="standard">Standard poker cards</option>
           <option value="poker-1-10">Poker cards (1 to 10)</option>
           <option value="poker-1-7-jqk">Poker cards (1 to 7, Jack, Queen, King)</option>
+          <option value="poker-52">Poker cards (52-card deck + 0–2 jokers)</option>
+          <option value="poker-double">Poker cards (double deck + 0–4 jokers)</option>
           <option value="trevisane-png">Trevisane PNG</option>
           <option value="trevisane-svg">Trevisane vector</option>
         </select>
@@ -1405,6 +1424,16 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
           <span>Card size</span>
           <input id="card-size" type="range" min="100" max="250" step="10" value="190" aria-label="Card size">
           <output id="card-size-value" for="card-size">190%</output>
+        </label>
+        <label id="joker-control" class="card-size-control" for="joker-count" hidden>
+          <span>Jokers</span>
+          <input id="joker-count" type="range" min="0" max="2" step="1" value="0" aria-label="Number of jokers">
+          <output id="joker-count-value" for="joker-count">0</output>
+        </label>
+        <label class="card-size-control" for="cards-per-draw">
+          <span>Cards at once</span>
+          <input id="cards-per-draw" type="range" min="1" max="5" step="1" value="2" aria-label="Cards revealed at a time">
+          <output id="cards-per-draw-value" for="cards-per-draw">2</output>
         </label>
         <button type="button" id="toggle-cheat" class="lumi-btn lumi-btn--ghost lumi-btn--small" aria-pressed="false">Cheat Sheet: Off</button>
       </div>
@@ -1475,6 +1504,10 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
         description: 'Track remaining ranks from a 1 to 10 poker deck' },
       'poker-1-7-jqk': { ranks: ['1', '2', '3', '4', '5', '6', '7', 'J', 'Q', 'K'], suits: null,
         description: 'Track remaining ranks from a 1 to 7, Jack, Queen and King poker deck' },
+      'poker-52': { ranks: ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'], suits: null, expanded: 'single',
+        description: 'Track remaining cards from a 52-card poker deck' },
+      'poker-double': { ranks: ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'], suits: null, expanded: 'double',
+        description: 'Track remaining cards from a 104-card double poker deck' },
       'trevisane-png': { ranks: ['A', '2', '3', '4', '5', '6', '7', 'J', 'Q', 'K'], suits: null, image: 'png',
         description: 'Track remaining ranks from the 40-card Trevisane deck (PNG)' },
       'trevisane-svg': { ranks: ['A', '2', '3', '4', '5', '6', '7', 'J', 'Q', 'K'], suits: null, image: 'svg',
@@ -1491,6 +1524,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     let currentDeckMode = 'standard';
     let RANKS = DECK_MODES.standard.ranks;
     let SUITS = POKER_SUITS;
+    let jokerCount = 0;
+    let lastSuitLevel = 1;
 
     function applyCardSize(value, save = false) {
       const slider = document.getElementById('card-size');
@@ -1512,13 +1547,40 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     catch (e) { applyCardSize(190); }
 
     function applyDeckMode(mode) {
+      const wasExpanded = Boolean(DECK_MODES[currentDeckMode].expanded);
       currentDeckMode = DECK_MODES[mode] ? mode : 'standard';
       const preset = DECK_MODES[currentDeckMode];
-      RANKS = preset.ranks;
+      if (preset.expanded) {
+        if (!wasExpanded) lastSuitLevel = state.level;
+        state.level = 4;
+      } else if (wasExpanded) {
+        state.level = lastSuitLevel;
+      }
+      const levelButtons = document.querySelectorAll('.level-selector .lumi-chip');
+      levelButtons.forEach(button => { button.disabled = Boolean(preset.expanded); });
       SUITS = preset.image ? TREVISANE_SUITS : (preset.suits || POKER_SUITS);
+      const jokerInput = document.getElementById('joker-count');
+      const jokerControl = document.getElementById('joker-control');
+      const maxJokers = preset.expanded === 'double' ? 4 : (preset.expanded === 'single' ? 2 : 0);
+      if (jokerInput) {
+        jokerInput.max = String(maxJokers);
+        jokerCount = preset.expanded ? Math.min(jokerCount, maxJokers) : 0;
+        jokerInput.value = String(jokerCount);
+      }
+      if (jokerControl) jokerControl.hidden = maxJokers === 0;
+      const jokerValue = document.getElementById('joker-count-value');
+      if (jokerValue) jokerValue.textContent = String(jokerCount);
       const description = document.getElementById('deck-description');
-      if (description) description.textContent = preset.description;
+      if (description) description.textContent = getDeckDescription();
       initDeck();
+    }
+
+    function getDeckDescription() {
+      const preset = DECK_MODES[currentDeckMode];
+      if (!preset.expanded) return preset.description;
+      const baseCount = preset.expanded === 'double' ? 104 : 52;
+      const deckName = preset.expanded === 'double' ? 'double deck' : 'deck';
+      return `Track remaining cards from a ${baseCount}-card ${deckName} with ${jokerCount} joker${jokerCount === 1 ? '' : 's'}`;
     }
 
     const state = {
@@ -1530,34 +1592,50 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       userGuesses: {},
       cheatVisible: false,
       isFinished: false,
-      lastPair: []
+      lastPair: [],
+      cardsPerDraw: 2
     };
 
     function initDeck() {
+      const preset = DECK_MODES[currentDeckMode];
+      const baseRanks = preset.ranks;
+      RANKS = jokerCount > 0 ? [...baseRanks, 'Joker'] : baseRanks;
+      SUITS = preset.image ? TREVISANE_SUITS : (preset.suits || POKER_SUITS);
       state.deck = [];
       state.drawnCards = [];
       state.hiddenCards = [];
       state.lastPair = [];
+      state.remainingCounts = {};
+      state.userGuesses = {};
       state.isFinished = false;
       
-      // Initialize counts based on active level (1 to 4 suits)
+      // Initialize counts from the cards built below.
       RANKS.forEach(rank => {
-        state.remainingCounts[rank] = state.level;
+        state.remainingCounts[rank] = 0;
         state.userGuesses[rank] = 0;
       });
 
-      // Build stripped deck (10 cards per suit)
-      for (let s = 0; s < state.level; s++) {
-        const suitObj = SUITS[s];
-        RANKS.forEach(rank => {
-          state.deck.push({
-            rank: rank,
-            suit: suitObj.symbol,
-            color: suitObj.color,
-            assetSuit: suitObj.assetSuit || suitObj.name,
-            assetNumber: RANKS.indexOf(rank) + 1
+      // Build the chosen deck, duplicating every suited card for double-deck mode.
+      const copies = preset.expanded === 'double' ? 2 : 1;
+      const suitCount = preset.expanded ? 4 : state.level;
+      for (let copy = 0; copy < copies; copy++) {
+        for (let s = 0; s < suitCount; s++) {
+          const suitObj = SUITS[s];
+          baseRanks.forEach((rank, index) => {
+            state.deck.push({
+              rank,
+              suit: suitObj.symbol,
+              color: suitObj.color,
+              assetSuit: suitObj.assetSuit || suitObj.name,
+              assetNumber: index + 1
+            });
+            state.remainingCounts[rank]++;
           });
-        });
+        }
+      }
+      for (let i = 0; i < jokerCount; i++) {
+        state.deck.push({ rank: 'Joker', suit: '★', color: i % 2 ? 'red' : 'black', isJoker: true });
+        state.remainingCounts.Joker++;
       }
 
       // Shuffle deck
@@ -1570,6 +1648,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       const numHidden = Math.min(2, state.deck.length);
       state.hiddenCards = state.deck.splice(0, numHidden);
 
+      const description = document.getElementById('deck-description');
+      if (description) description.textContent = getDeckDescription();
       updateViz();
     }
 
@@ -1581,7 +1661,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       cards.forEach(c => c.classList.add('is-drawing'));
 
       setTimeout(() => {
-        const countToDraw = Math.min(2, state.deck.length);
+        const countToDraw = Math.min(state.cardsPerDraw, state.deck.length);
         state.lastPair = [];
 
         for (let i = 0; i < countToDraw; i++) {
@@ -1602,6 +1682,9 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     function createCardHTML(card) {
       if (!card) {
         return `<div class="card-back">End</div>`;
+      }
+      if (card.isJoker) {
+        return `<div class="playing-card is-joker"><span class="joker-face">JOKER</span><span class="joker-suit" aria-hidden="true">★</span><span class="joker-face">JOKER</span></div>`;
       }
       const preset = DECK_MODES[currentDeckMode];
       if (preset.image) {
@@ -1652,6 +1735,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       // 4. Draw button disabled state
       const drawBtn = document.getElementById('btn-draw');
       drawBtn.disabled = state.deck.length === 0;
+      drawBtn.textContent = `Reveal ${state.cardsPerDraw} Card${state.cardsPerDraw === 1 ? '' : 's'}`;
 
       // 5. Cheat Sheet Panel
       const cheatPanel = document.getElementById('cheat-panel');
@@ -1744,9 +1828,23 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     // Controls setup
     document.getElementById('deck-mode').addEventListener('change', e => applyDeckMode(e.target.value));
     document.getElementById('card-size').addEventListener('input', e => applyCardSize(e.target.value, true));
+    document.getElementById('joker-count').addEventListener('input', e => {
+      jokerCount = Number(e.target.value);
+      document.getElementById('joker-count-value').textContent = String(jokerCount);
+      const description = document.getElementById('deck-description');
+      if (description) description.textContent = getDeckDescription();
+      initDeck();
+    });
+    document.getElementById('cards-per-draw').addEventListener('input', e => {
+      state.cardsPerDraw = Number(e.target.value);
+      document.getElementById('cards-per-draw-value').textContent = String(state.cardsPerDraw);
+      try { localStorage.setItem('card-drill-cards-per-draw', String(state.cardsPerDraw)); } catch (e) {}
+      updateViz();
+    });
     document.querySelectorAll('.level-selector .lumi-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         state.level = parseInt(chip.dataset.level, 10);
+        lastSuitLevel = state.level;
         initDeck();
       });
     });
@@ -1760,6 +1858,12 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       state.cheatVisible = !state.cheatVisible;
       updateViz();
     });
+
+    try {
+      state.cardsPerDraw = Math.max(1, Math.min(5, Number(localStorage.getItem('card-drill-cards-per-draw')) || 2));
+    } catch (e) {}
+    document.getElementById('cards-per-draw').value = String(state.cardsPerDraw);
+    document.getElementById('cards-per-draw-value').textContent = String(state.cardsPerDraw);
 
     // First frame initialization
     initDeck();
