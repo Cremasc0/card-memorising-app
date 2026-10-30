@@ -1009,31 +1009,61 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   <title>Card Counting Drill</title>
   <style>
     /* Widget specific layout glue */
+    html {
+      min-height: 100%;
+      scroll-behavior: smooth;
+      overflow-y: auto !important;
+      background: var(--body-bg, #f4f4f8);
+    }
+
     body {
       margin: 0;
       padding: 0;
-      background: transparent;
+      min-height: 100vh;
+      background: var(--body-bg, #f4f4f8);
       font-family: var(--ff-sans);
       color: var(--on-surface);
-      overflow-y: hidden;
+      overflow-x: hidden;
+      overflow-y: auto !important;
+    }
+
+    body .widget-container {
+      width: 100%;
+      max-width: 1540px !important;
+      min-height: 100vh;
+      height: auto;
+      margin-inline: auto;
+      padding: clamp(16px, 2.5vw, 32px) !important;
     }
 
     .widget-container {
-      width: 100%;
-      min-height: 280px;
-      padding: var(--spacing-l);
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-l);
+      gap: clamp(16px, 2vw, 24px);
     }
 
     .drill-header {
       display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+      padding: 4px 2px 10px;
+    }
+
+    .header-top {
+      display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: var(--spacing-m);
+      gap: 16px 24px;
+    }
+
+    .header-selectors {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px 18px;
     }
 
     .header-titles h2 {
@@ -1049,16 +1079,18 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       display: flex;
       gap: var(--spacing-xs);
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .deck-picker { display: flex; align-items: center; gap: var(--spacing-xs); }
-    .deck-picker label { color: var(--on-surface-variant); white-space: nowrap; }
-    .deck-picker select.lumi-select { width: auto; min-width: 230px; max-width: 100%; }
+    .deck-picker, .theme-picker { display: flex; align-items: center; gap: 9px; }
+    .deck-picker label, .theme-picker label { color: var(--on-surface-variant); white-space: nowrap; font-size: 14px; }
+    .deck-picker select.lumi-select { width: auto; min-width: 230px; max-width: min(340px, 46vw); }
+    .theme-picker select.lumi-select { width: auto; min-width: 135px; max-width: 180px; }
 
     .stage-card {
-      background: var(--surface-bright);
-      border-radius: var(--r-l);
-      padding: var(--spacing-l);
+      background: var(--surface-bright, #fff);
+      border-radius: 22px;
+      padding: clamp(16px, 2.3vw, 28px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1066,7 +1098,12 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       min-height: 220px;
       position: relative;
       border: 1px solid var(--stroke-default);
+      box-shadow: 0 12px 36px rgba(27, 39, 69, .07);
     }
+
+    .stage-card, .guessing-section, .score-summary { width: 100%; box-sizing: border-box; }
+    .guessing-section { scroll-margin-top: 18px; }
+    body::-webkit-scrollbar { width: 12px; }
 
     .cards-display {
       display: flex;
@@ -1197,13 +1234,13 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       align-items: center;
       justify-content: center;
       gap: var(--spacing-s);
-      flex: 1 1 260px;
+      flex: 1 1 200px;
       color: var(--on-surface-variant);
       font-size: 14px;
     }
 
     .card-size-control input[type="range"] {
-      width: min(180px, 35vw);
+      width: min(140px, 24vw);
       accent-color: var(--accent, #3186ff);
       cursor: pointer;
     }
@@ -1269,9 +1306,10 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
 
     .guessing-section {
       background: var(--surface-bright);
-      border-radius: var(--r-l);
-      padding: var(--spacing-l);
+      border-radius: 22px;
+      padding: clamp(16px, 2.3vw, 28px);
       border: 1px solid var(--stroke-default);
+      box-shadow: 0 12px 36px rgba(27, 39, 69, .07);
       display: flex;
       flex-direction: column;
       gap: var(--spacing-l);
@@ -1290,6 +1328,15 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       .tracker-grid {
         grid-template-columns: repeat(5, 1fr);
       }
+    }
+
+    @media (max-width: 760px) {
+      .header-top { align-items: stretch; }
+      .header-selectors { justify-content: flex-start; }
+      .level-selector { justify-content: flex-start; }
+      .deck-picker, .theme-picker { width: 100%; justify-content: space-between; }
+      .deck-picker select.lumi-select, .theme-picker select.lumi-select { flex: 1; max-width: none; }
+      .action-bar { justify-content: flex-start; }
     }
 
     .guess-card {
@@ -1371,6 +1418,12 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     document.documentElement.setAttribute('data-theme', theme);
     syncBody();
   }
+  function getThemeChoice() {
+    try {
+      var saved = localStorage.getItem('card-drill-theme');
+      return saved === 'light' || saved === 'dark' ? saved : 'system';
+    } catch (e) { return 'system'; }
+  }
   if (typeof MutationObserver === 'function') {
     new MutationObserver(syncBody).observe(document.documentElement, {
       attributes: true, attributeFilter: ['data-theme']
@@ -1382,15 +1435,12 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   try {
     var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
     if (mq) {
-      var cur = document.documentElement.getAttribute('data-theme');
-      if (!cur) {
-        syncTheme(mq.matches ? 'dark' : 'light');
-      } else {
-        syncTheme(cur);
-      }
+      var choice = getThemeChoice();
+      var initialTheme = choice === 'system' ? (mq.matches ? 'dark' : 'light') : choice;
+      syncTheme(initialTheme);
       if (mq.addEventListener) {
         mq.addEventListener('change', function(e) {
-          syncTheme(e.matches ? 'dark' : 'light');
+          if (getThemeChoice() === 'system') syncTheme(e.matches ? 'dark' : 'light');
         });
       }
     }
@@ -1407,21 +1457,33 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   <div class="widget-container">
     <!-- Header with Difficulty Level Selector -->
     <div class="drill-header">
-      <div class="header-titles">
-        <h2 class="lumi-headline-m">Card Counting Drill</h2>
-        <p id="deck-description" class="lumi-body-s">Track remaining ranks from a stripped 40-card deck</p>
-      </div>
-      <div class="deck-picker">
-        <label for="deck-mode">Card style</label>
-        <select id="deck-mode" class="lumi-select" aria-label="Card style">
-          <option value="standard">Standard poker cards</option>
-          <option value="poker-1-10">Poker cards (1 to 10)</option>
-          <option value="poker-1-7-jqk">Poker cards (1 to 7, Jack, Queen, King)</option>
-          <option value="poker-52">Poker cards (52-card deck + 0–2 jokers)</option>
-          <option value="poker-double">Poker cards (double deck + 0–4 jokers)</option>
-          <option value="trevisane-png">Trevisane PNG</option>
-          <option value="trevisane-svg">Trevisane vector</option>
-        </select>
+      <div class="header-top">
+        <div class="header-titles">
+          <h2 class="lumi-headline-m">Card Counting Drill</h2>
+          <p id="deck-description" class="lumi-body-s">Track remaining ranks from a stripped 40-card deck</p>
+        </div>
+        <div class="header-selectors">
+          <div class="deck-picker">
+            <label for="deck-mode">Card style</label>
+            <select id="deck-mode" class="lumi-select" aria-label="Card style">
+              <option value="standard">Standard poker cards</option>
+              <option value="poker-1-10">Poker cards (1 to 10)</option>
+              <option value="poker-1-7-jqk">Poker cards (1 to 7, Jack, Queen, King)</option>
+              <option value="poker-52">Poker cards (52-card deck + 0–2 jokers)</option>
+              <option value="poker-double">Poker cards (double deck + 0–4 jokers)</option>
+              <option value="trevisane-png">Trevisane PNG</option>
+              <option value="trevisane-svg">Trevisane vector</option>
+            </select>
+          </div>
+          <div class="theme-picker" aria-label="App appearance">
+            <label for="theme-mode">Appearance</label>
+            <select id="theme-mode" class="lumi-select" aria-label="App theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="level-selector" role="group" aria-label="Difficulty Level">
         <button type="button" class="lumi-chip is-active" data-level="1" aria-pressed="true">1 Suit</button>
@@ -1449,6 +1511,11 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
           <span>Cards at once</span>
           <input id="cards-per-draw" type="range" min="1" max="5" step="1" value="2" aria-label="Cards revealed at a time">
           <output id="cards-per-draw-value" for="cards-per-draw">2</output>
+        </label>
+        <label class="card-size-control" for="hidden-count">
+          <span>Guess at end</span>
+          <input id="hidden-count" type="range" min="1" max="10" step="1" value="2" aria-label="Cards to guess at the end">
+          <output id="hidden-count-value" for="hidden-count">2</output>
         </label>
         <button type="button" id="toggle-cheat" class="lumi-btn lumi-btn--ghost lumi-btn--small" aria-pressed="false">Cheat Sheet: Off</button>
       </div>
@@ -1620,7 +1687,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       cheatVisible: false,
       isFinished: false,
       lastPair: [],
-      cardsPerDraw: 2
+      cardsPerDraw: 2,
+      hiddenCardCount: 2
     };
 
     function initDeck() {
@@ -1672,8 +1740,17 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
         [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
       }
 
-      // Reserve 2 hidden cards to end drill with guessing test
-      const numHidden = Math.min(2, state.deck.length);
+      // Reserve a configurable number of hidden cards, leaving at least one to reveal.
+      const hiddenSlider = document.getElementById('hidden-count');
+      const maxHidden = Math.max(1, Math.min(10, state.deck.length - 1));
+      state.hiddenCardCount = Math.min(state.hiddenCardCount, maxHidden);
+      if (hiddenSlider) {
+        hiddenSlider.max = String(maxHidden);
+        hiddenSlider.value = String(state.hiddenCardCount);
+      }
+      const hiddenValue = document.getElementById('hidden-count-value');
+      if (hiddenValue) hiddenValue.textContent = String(state.hiddenCardCount);
+      const numHidden = Math.min(state.hiddenCardCount, Math.max(1, state.deck.length - 1));
       state.hiddenCards = state.deck.splice(0, numHidden);
 
       const description = document.getElementById('deck-description');
@@ -1798,6 +1875,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
         guessingPanel.style.display = 'flex';
         document.getElementById('hidden-count-text').textContent = state.hiddenCards.length;
 
+        requestAnimationFrame(() => guessingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+
         const guessGrid = document.getElementById('guess-grid');
         if (guessGrid) guessGrid.innerHTML = RANKS.map(rank => `
           <div class="guess-card">
@@ -1877,6 +1956,12 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       try { localStorage.setItem('card-drill-cards-per-draw', String(state.cardsPerDraw)); } catch (e) {}
       updateViz();
     });
+    document.getElementById('hidden-count').addEventListener('input', e => {
+      state.hiddenCardCount = Number(e.target.value);
+      document.getElementById('hidden-count-value').textContent = String(state.hiddenCardCount);
+      try { localStorage.setItem('card-drill-hidden-count', String(state.hiddenCardCount)); } catch (e) {}
+      initDeck();
+    });
     document.querySelectorAll('.level-selector .lumi-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         state.level = parseInt(chip.dataset.level, 10);
@@ -1900,6 +1985,9 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     } catch (e) {}
     document.getElementById('cards-per-draw').value = String(state.cardsPerDraw);
     document.getElementById('cards-per-draw-value').textContent = String(state.cardsPerDraw);
+    try {
+      state.hiddenCardCount = Math.max(1, Math.min(10, Number(localStorage.getItem('card-drill-hidden-count')) || 2));
+    } catch (e) {}
 
     // First frame initialization
     initDeck();
@@ -1909,6 +1997,22 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       document.documentElement.setAttribute('data-theme', t);
       updateViz();
     };
+    function setThemeMode(mode, save = false) {
+      const choice = ['system', 'light', 'dark'].includes(mode) ? mode : 'system';
+      const themeSelect = document.getElementById('theme-mode');
+      if (themeSelect) themeSelect.value = choice;
+      if (save) {
+        try { localStorage.setItem('card-drill-theme', choice); } catch (e) {}
+      }
+      const resolved = choice === 'system'
+        ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : choice;
+      applyTheme(resolved);
+    }
+    let savedTheme = 'system';
+    try { savedTheme = localStorage.getItem('card-drill-theme') || 'system'; } catch (e) {}
+    setThemeMode(savedTheme);
+    document.getElementById('theme-mode').addEventListener('change', e => setThemeMode(e.target.value, true));
     if (!document.documentElement.hasAttribute('data-theme') && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
       applyTheme('dark');
     }

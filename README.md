@@ -11,7 +11,7 @@ Available card styles:
 - Double 52-card poker deck with 0–4 jokers
 - Trevisane card scans (PNG) or traced vectors (SVG)
 
-The size slider ranges from 100% to 250% and remembers its setting. Choose to reveal 1–5 cards at a time; that setting is remembered too.
+Use the sliders to set card size (100–250%), cards revealed per draw (1–5), and cards to guess at the end (1–10, limited to leave at least one card to reveal). Settings are remembered. Choose System, Light, or Dark in Appearance. The app scrolls to the guess panel when a round ends.
 
 ## Download the app
 
@@ -28,6 +28,4 @@ Install Node.js, then run `npm ci` and `npm start` from this folder.
 - Windows portable app: `npm run build:win`
 - macOS universal `.dmg` and `.zip`: `npm run build:mac`
 
-Builds are placed in `dist`. Pushing a version tag such as `v1.1.3` runs GitHub Actions for both platforms and publishes the installers to GitHub Releases. `workflow_dispatch` can build the platform artifacts without publishing a release.
-
-
+Builds are placed in `dist`. Pushing a version tag such as `v1.1.4` runs GitHub Actions for both platforms and publishes the installers to GitHub Releases. `workflow_dispatch` can build the platform artifacts without publishing a release.
