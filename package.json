@@ -1,6 +1,6 @@
 {
   "name": "trevisane-card-drill",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Windows desktop card counting drill with selectable poker and Trevisane card styles",
   "main": "main.cjs",
@@ -8,8 +8,8 @@
     "prevectorize:cards": "python prepare_trace.py",
     "vectorize:cards": "node vectorize_cards.js",
     "start": "electron .",
-    "build:win": "electron-builder --win portable",
-    "build:mac": "electron-builder --mac dmg zip --universal"
+    "build:win": "electron-builder --win portable --publish never",
+    "build:mac": "electron-builder --mac dmg zip --universal --publish never"
   },
   "dependencies": {
     "imagetracerjs": "^1.2.6",

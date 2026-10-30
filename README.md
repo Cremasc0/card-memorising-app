@@ -28,4 +28,4 @@ Install Node.js, then run `npm ci` and `npm start` from this folder.
 - Windows portable app: `npm run build:win`
 - macOS universal `.dmg` and `.zip`: `npm run build:mac`
 
-Builds are placed in `dist`. Pushing a version tag such as `v1.1.0` runs GitHub Actions for both platforms and publishes the installers to GitHub Releases. `workflow_dispatch` can build the platform artifacts without publishing a release.
+Builds are placed in `dist`. Pushing a version tag such as `v1.1.1` runs GitHub Actions for both platforms and publishes the installers to GitHub Releases. `workflow_dispatch` can build the platform artifacts without publishing a release.
