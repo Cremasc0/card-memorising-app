@@ -16,3 +16,5 @@ Install Node.js, then run `npm install` and `npm start` from this folder.
 
 Run `npm run build:win`. The portable executable will be created in `dist-win`.
 It includes the app and all card images, so it can be moved and opened directly.
+
+The card size slider ranges from 100% to 250%, remembers your setting, and starts at 190%.

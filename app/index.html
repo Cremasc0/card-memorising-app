@@ -1079,8 +1079,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     }
 
     .playing-card {
-      width: 86px;
-      height: 124px;
+      width: var(--standard-card-width, 86px);
+      height: var(--standard-card-height, 124px);
       background: var(--surface);
       border-radius: var(--r-s);
       border: 1px solid var(--stroke-default);
@@ -1096,8 +1096,8 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     }
 
     .playing-card.is-image-card {
-      width: 78px;
-      height: 158px;
+      width: var(--image-card-width, 78px);
+      height: var(--image-card-height, 158px);
       padding: 0;
       overflow: hidden;
       background: #fff;
@@ -1174,6 +1174,28 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
       font-family: var(--ff-mono);
       font-size: 13px;
       color: var(--on-surface-variant);
+    }
+
+    .card-size-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-s);
+      flex: 1 1 260px;
+      color: var(--on-surface-variant);
+      font-size: 14px;
+    }
+
+    .card-size-control input[type="range"] {
+      width: min(180px, 35vw);
+      accent-color: var(--accent, #3186ff);
+      cursor: pointer;
+    }
+
+    .card-size-control output {
+      min-width: 42px;
+      color: var(--on-surface);
+      font-family: var(--ff-mono);
     }
 
     .tracker-panel {
@@ -1379,6 +1401,11 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     <div id="deck-stage" class="stage-card">
       <div class="action-bar" style="margin-bottom: var(--spacing-s);">
         <span id="status-readout" class="status-badge">Remaining: 10 cards | Hidden: 2</span>
+        <label class="card-size-control" for="card-size">
+          <span>Card size</span>
+          <input id="card-size" type="range" min="100" max="250" step="10" value="190" aria-label="Card size">
+          <output id="card-size-value" for="card-size">190%</output>
+        </label>
         <button type="button" id="toggle-cheat" class="lumi-btn lumi-btn--ghost lumi-btn--small" aria-pressed="false">Cheat Sheet: Off</button>
       </div>
 
@@ -1464,6 +1491,25 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     let currentDeckMode = 'standard';
     let RANKS = DECK_MODES.standard.ranks;
     let SUITS = POKER_SUITS;
+
+    function applyCardSize(value, save = false) {
+      const slider = document.getElementById('card-size');
+      const size = Math.max(100, Math.min(250, Number(value) || 190));
+      const scale = size / 100;
+      document.documentElement.style.setProperty('--standard-card-width', `${Math.round(86 * scale)}px`);
+      document.documentElement.style.setProperty('--standard-card-height', `${Math.round(124 * scale)}px`);
+      document.documentElement.style.setProperty('--image-card-width', `${Math.round(78 * scale)}px`);
+      document.documentElement.style.setProperty('--image-card-height', `${Math.round(158 * scale)}px`);
+      if (slider) slider.value = String(size);
+      const valueLabel = document.getElementById('card-size-value');
+      if (valueLabel) valueLabel.textContent = `${size}%`;
+      if (save) {
+        try { localStorage.setItem('card-drill-size', String(size)); } catch (e) {}
+      }
+    }
+
+    try { applyCardSize(localStorage.getItem('card-drill-size') || 190); }
+    catch (e) { applyCardSize(190); }
 
     function applyDeckMode(mode) {
       currentDeckMode = DECK_MODES[mode] ? mode : 'standard';
@@ -1697,6 +1743,7 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
 
     // Controls setup
     document.getElementById('deck-mode').addEventListener('change', e => applyDeckMode(e.target.value));
+    document.getElementById('card-size').addEventListener('input', e => applyCardSize(e.target.value, true));
     document.querySelectorAll('.level-selector .lumi-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         state.level = parseInt(chip.dataset.level, 10);
